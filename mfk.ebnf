@@ -1,0 +1,90 @@
+(* Motherfrakkertran: FRACTRAN but usable and non-deterministic *)
+(* We basically give FRACTRAN procedures, constants, user input, and an RNG. *)
+(* Motherfrakkertran can be shortened as MFK. It's a portamenteu of Motherfrakker and FRACTRAN. *)
+
+motherfrakkertran = descriptor, " ", fractions ; (* MFK programs are divided into two parts. *)
+
+(* DESCRIPTOR *)
+(* The descriptor begins with parametrics, and then with the fillers *)
+descriptor = parametrics, descriptorS, fillers ;
+
+(* The parametrics define like the initial integer, and max iteration *)
+parametrics = initialN, descriptorS, iterations, descriptorS, seedV ;
+initialN = "n=", Queryable ; (* this is the initial number. it is either a constant, or a user query that resolves to one *)
+iterations = "m=", iterant ; (* same with iterations, except that it can also be unbounded *)
+seedV = "s=", iterant ; (* Seed for the random number generator. Infinity means the interpreter provides the seed. *)
+iterant = Queryable | "inf" ;
+
+(* The filler is the interesting stuff. Define the constants and procedures here. *)
+fillers = { Named, descriptorS } ;
+
+(* Named is called such since it is named by one capital letter (the Identity). It is either a procedure or a variable *)
+(* There can only be one of each Identity. If an Identity occupies a procedure, then no constant may be defined under that Identity. *)
+Named = Const | Proc ; (* Either a constant or a procedure *)
+Const = Deferred | Fixed ; (* Either executed late (Deferred) or only done once AKA eagerly (Fixed) *)
+
+(* Deferred constants are identified by their walrus assignment. These are evaluated later AKA lazy evaluation. *)
+(* They are evaluated everytime this variable is encountered. Once evaluated, the value is substituted in. *)
+(* The encounter is per-fraction lazy-evaluated. *)
+Deferred = Identity, ":=", Queryable ; 
+(* Fixed constants are defined by their straightforward assignment. These are evaluated eagerly. *)
+Fixed = Identity, "=", Queryable ; 
+
+(* Procedures use brackets instead of an assignment. *)
+(* These are evaluated lazily; procedures aren't macros. *)
+(* They are inlined, but their contents are still lazily evaluated. *)
+Proc = Identity, "(", fractions, ")" ; 
+
+descriptorS = "," ;
+
+(* FRACTIONS *)
+(* This is the heart of FRACTRAN/MFK programs *)
+(* It is still evaluated like regular FRACTRAN programs except for some stuff *)
+
+fractions = { Qualified , " " } ;
+
+(* Either a fraction, or an Identity corresponding to a procedure. *)
+(* Recurssion is not allowed. *)
+Qualified = Fraction | Identity ; 
+
+(* Fractions. *)
+(* Either it's all numbers, numbers, numbers, or numbers. *)
+(* Division by 0 is invalid. *)
+Fraction = FractionQueryable, "/", FractionQueryable ; 
+(* Identity here must be referring to a constant. *)
+(* Special form of Queryable that also includes Identity, exclusively for the fraction. *)
+(* Otherwise if we included in the regular Queryable, constants would have recurssion. *)
+FractionQueryable = Queryable | Identity ; 
+
+(* TYPING *)
+(* This is dealing with the nitpicks of stuff. *)
+(* This is where we'll deal with Identity, numerics, user input, RNG, and other crap *)
+
+Queryable = Number | Input | Random ; (* This is a queryable *)
+
+(* User inputs are a question mark. *)
+(* They can optionally include a prompt. Otherwise, they are silent. *)
+(* These are evaluated when encountered, per-fraction. *)
+Input = "?", [ "[", prompt, "]" ] ;
+prompt = ? TBA, but this is a prompt string ?.
+
+(* Random is implemented with an R. *)
+(* Parameters must be defined. *)
+(* [start,end) *)
+(* Evaluated per-fraction upon encounter. *)
+(* it is invalid for start > end. *)
+Random = "R", "[", Number, ";", Number, "]" ;
+
+(* This is a number. *)
+(* Negatives aren't allowed. *)
+Number = zero | ( nonzero, { digit } ) ; 
+digit = zero | nonzero ;
+nonzero = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
+zero = "0" ;
+
+(* An Identity is just the name for the fillers. It's only one character, a capital alphabet character at that. *)
+(* These must be unique across procedures and constants. *)
+Identity = "A" | "B" | "C" | "D" | "E" | "F" | "G"
+           | "H" | "I" | "J" | "K" | "L" | "M" | "N"
+           | "O" | "P" | "Q" | "R" | "S" | "T" | "U"
+           | "V" | "W" | "X" | "Y" | "Z" ;
