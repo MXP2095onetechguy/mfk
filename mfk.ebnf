@@ -12,8 +12,9 @@ descriptor = parametrics, descriptorS, fillers ;
 parametrics = initialN, descriptorS, iterations, descriptorS, seedV ;
 initialN = "n=", Queryable ; (* this is the initial number. it is either a constant, or a user query that resolves to one *)
 iterations = "m=", iterant ; (* same with iterations, except that it can also be unbounded *)
-seedV = "s=", iterant ; (* Seed for the random number generator. Infinity means the interpreter provides the seed. *)
+seedV = "s=", seedval ; (* Seed for the random number generator. Infinity means the interpreter provides the seed. *)
 iterant = Queryable | "inf" ;
+seedval = Number | Input | "inf";
 
 (* The filler is the interesting stuff. Define the constants and procedures here. *)
 fillers = { Named, descriptorS } ;

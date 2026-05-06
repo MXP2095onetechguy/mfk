@@ -1,0 +1,1 @@
+Soon after MFK.NET, this will be the successor. libmfk will be written in C99, and will have bindings for c# and tcl.

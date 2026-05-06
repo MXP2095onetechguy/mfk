@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.Numerics;
 using System.Collections.Generic;
 
@@ -37,9 +38,23 @@ namespace mxpsql.MFK.NET {
                 return _Seed;
             }
         }
+        public IDictionary<char, Named> EnvironmentSymbolTable
+        {
+            get
+            {
+                return _EnvironmentSymbolTable;
+            }
+        }
+        public IList<Qualified> Fraks
+        {
+            get
+            {
+                return _Fraks;
+            }
+        }
 
         public CompiledMFKProgram() {}
-        public CompiledMFKProgram(Queryable N, Queryable MaxIter, Queryable Seed)
+        public CompiledMFKProgram(Queryable N, Queryable MaxIter, Queryable Seed, IDictionary<char, Named> ESymTable)
         {
             if((N is Numeral) && ((Numeral)N).IsUnbounded()) throw new IllegalQueryableException("Unbounded N is not allowed.");
             if((Seed is Numeral) && ((Numeral)Seed).IsUnbounded()) throw new IllegalQueryableException("Unbounded Seed is not allowed.");
@@ -47,11 +62,26 @@ namespace mxpsql.MFK.NET {
             this._InitialN = N;
             this._MaxIterations = MaxIter;
             this._Seed = Seed;
+            this._EnvironmentSymbolTable = ESymTable;
         }
 
         public override string ToString()
         {
-            return $"n={InitialN},m={MaxIteration}";
+            StringBuilder sb = new StringBuilder(); 
+
+            sb.Append($"n={InitialN},m={MaxIteration},s={Seed},");
+            foreach(KeyValuePair<char, Named> sym in _EnvironmentSymbolTable)
+            {
+                sb.Append(sym);
+                sb.Append(' ');
+            }
+            foreach(Qualified qual in Fraks)
+            {
+                sb.Append(qual);
+                sb.Append(' ');
+            }
+
+            return sb.ToString();
         }
     }
 

@@ -2,7 +2,6 @@
 using System.Text;
 using System.Numerics;
 using System.Collections.Generic;
-using System.ComponentModel;
 
 namespace mxpsql.MFK.NET
 {
@@ -114,9 +113,11 @@ namespace mxpsql.MFK.NET
             // Expect ']'
             pStream.Expect(']');
 
+            if(Minimum < 0 || Maximum < 0 || Minimum >= Maximum) Throw("Random Queryable.", new IllegalQueryableException($"Attempted to set an invalid Random Value ({Minimum}, {Maximum}) in a Queryable."));
+
             return new RandomValue(Minimum, Maximum);
         }
-        private Queryable ParseQueryable()
+        private Queryable ParseQueryable(bool RandomReady=true)
         {
             char first = pStream.Peek();
 
@@ -127,6 +128,7 @@ namespace mxpsql.MFK.NET
                 case '?':
                     return ParseUserInputRequest();
                 case 'R':
+                    if(!RandomReady) Throw("Random Queryable.", new IllegalQueryableException("Attempted to use the random number generator when not ready!"));
                     return ParseRandom();
                 default:
                     Throw("Unknown Queryable found.", new IllegalQueryableException($"No known Queryable starts with a '{first}' and it is still found at {pStream.HumanIndex}."));
@@ -138,6 +140,7 @@ namespace mxpsql.MFK.NET
         }
 #endregion
 
+#region ParseParametrics
         private Queryable ParseInitialN()
         { 
             pStream.Expect('n');
@@ -173,21 +176,38 @@ namespace mxpsql.MFK.NET
                 pStream.Expect('f'); 
 
                 // By now, should have expected "inf"
+                // inf means just up to the interpreter
                 SeedV = Numeral.Unbounded;
-            } else { // it has bounds
-                SeedV = ParseQueryable(); // TODO: Replace with a ParseQueryable
+            } else { // it has a seed
+                // Customize the Seed parser
+                SeedV = ParseQueryable(false);
             }
             pStream.Expect(',');
             return SeedV;
+        }
+#endregion
+
+        private IDictionary<char, Named> ParseFillers() {
+            IDictionary<char, Named> table = new Dictionary<char, Named>();
+
+            while(pStream.Unmatch(' '))
+            {
+                // Consume for a test
+                continue;
+            }
+            pStream.Match(' ');
+
+            return table;
         }
 
         public void Parse() {
 
             Queryable N = ParseInitialN(); // Initial N is always the first
             Queryable MaxIter = ParseMaxIter(); // MaxIter is always second
-            Queryable Seed = ParseMaxIter(); // Seed is always third
+            Queryable Seed = ParseSeed(); // Seed is always third
+            IDictionary<char, Named> table = ParseFillers();
 
-            Compiled = new CompiledMFKProgram(N, MaxIter, Seed);
+            Compiled = new CompiledMFKProgram(N, MaxIter, Seed, table);
         }
 #endregion
 
@@ -312,6 +332,17 @@ namespace mxpsql.MFK.NET
                     new FormatException()
                 );
             }
+        }
+
+        public bool Unmatch(char C)
+        {
+            if (TryPeek(out char actual) && actual != C)
+            {
+                Advance();
+                return true;
+            }
+
+            return false;
         }
 #endregion
     }
