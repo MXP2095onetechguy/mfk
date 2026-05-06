@@ -1,2 +1,8 @@
 <Solution>
+  <Folder Name="/mfk.net.cli/">
+    <Project Path="mfk.net.cli/MFK.NET.CLI.csproj" />
+  </Folder>
+  <Folder Name="/mfk.net.lib/">
+    <Project Path="mfk.net.lib/MFK.NET.csproj" />
+  </Folder>
 </Solution>
