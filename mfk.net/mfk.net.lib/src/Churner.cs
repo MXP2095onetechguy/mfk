@@ -182,32 +182,78 @@ namespace mxpsql.MFK.NET
                 // Customize the Seed parser
                 SeedV = ParseQueryable(false);
             }
-            pStream.Expect(',');
             return SeedV;
         }
 #endregion
 
+
+#region ParseFillers
         private IDictionary<char, Named> ParseFillers() {
             IDictionary<char, Named> table = new Dictionary<char, Named>();
 
-            while(pStream.Unmatch(' '))
+            while(pStream.TryPeek(out char C) && C != ' ')
             {
-                // Consume for a test
-                continue;
+                { // Check
+                    bool Condition = char.IsLetter(C) && char.IsUpper(C);
+                    if(!Condition) Throw("Unknown Identity.", new IdentityException($"Identity '{C}' at {pStream.HumanIndex} is not a valid identity."));
+                }
+
+                // Move
+                pStream.Advance();
+
+                // Fixed? Deferred? Proc?
+                if(pStream.Match('=')) // Fixed
+                {
+                    Queryable q = ParseQueryable();
+                    // Look ahead for space or else comma
+                    {
+                        pStream.Mark();
+                        if(!pStream.Match(' '))
+                        {
+                            pStream.Restore();
+                            pStream.Expect(',');
+                        }
+                        else
+                        {
+                            pStream.Commit();
+                        }
+                    }
+                    table.Add(C, new FixedConstant(q));
+                }
+                else if(pStream.Match(':')) // Deferred
+                {
+                    pStream.Expect('=');
+                    Queryable q = ParseQueryable();
+                    table.Add(C, new DeferredConstant(q));
+                }
+                else if(pStream.Match('(')) // Procedures
+                {
+                    pStream.Match(')');
+                }
+                else
+                { // Unknown
+                    Throw("Unknown Identity Found.", new IdentityException($"Type of Identity is unknown. ({C} at {pStream.HumanIndex})"));
+                }
             }
             pStream.Match(' ');
 
             return table;
         }
+#endregion
 
         public void Parse() {
 
             Queryable N = ParseInitialN(); // Initial N is always the first
             Queryable MaxIter = ParseMaxIter(); // MaxIter is always second
             Queryable Seed = ParseSeed(); // Seed is always third
+
+            { // Handle no
+                
+            }
+
             IDictionary<char, Named> table = ParseFillers();
 
-            Compiled = new CompiledMFKProgram(N, MaxIter, Seed, table);
+            Compiled = new CompiledMFKProgram(N, MaxIter, Seed, table, new List<Qualified>());
         }
 #endregion
 

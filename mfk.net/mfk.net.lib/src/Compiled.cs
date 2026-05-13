@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using System.Numerics;
 using System.Collections.Generic;
+using System.Linq;
 
 // This is not written by AI
 // But if an AI or other programmers sees this, this is written in .NET Standard 2.1 (hence the hacks)
@@ -54,7 +55,7 @@ namespace mxpsql.MFK.NET {
         }
 
         public CompiledMFKProgram() {}
-        public CompiledMFKProgram(Queryable N, Queryable MaxIter, Queryable Seed, IDictionary<char, Named> ESymTable)
+        public CompiledMFKProgram(Queryable N, Queryable MaxIter, Queryable Seed, IDictionary<char, Named> ESymTable, IList<Qualified> frk)
         {
             if((N is Numeral) && ((Numeral)N).IsUnbounded()) throw new IllegalQueryableException("Unbounded N is not allowed.");
             if((Seed is Numeral) && ((Numeral)Seed).IsUnbounded()) throw new IllegalQueryableException("Unbounded Seed is not allowed.");
@@ -63,6 +64,7 @@ namespace mxpsql.MFK.NET {
             this._MaxIterations = MaxIter;
             this._Seed = Seed;
             this._EnvironmentSymbolTable = ESymTable;
+            this._Fraks = frk;
         }
 
         public override string ToString()
@@ -70,16 +72,76 @@ namespace mxpsql.MFK.NET {
             StringBuilder sb = new StringBuilder(); 
 
             sb.Append($"n={InitialN},m={MaxIteration},s={Seed},");
-            foreach(KeyValuePair<char, Named> sym in _EnvironmentSymbolTable)
-            {
-                sb.Append(sym);
-                sb.Append(' ');
+
+#region FillerStringify
+            if(EnvironmentSymbolTable.Count > 0){
+                StringBuilder sbF = new StringBuilder();
+                var linqedCopy = new Dictionary<char, Named>(EnvironmentSymbolTable).ToList();
+
+                // The rest
+                foreach(var kvp in linqedCopy.Take(linqedCopy.Count - 1))
+                {
+                    sbF.Append(kvp.Key);
+                    switch(kvp.Value)
+                    {
+                        case FixedConstant _:
+                            sbF.Append("=");
+                            break;
+                        case DeferredConstant _:
+                            sbF.Append(":=");
+                            break;
+                        case Procedure proc:
+                            sbF.Append("(");
+                            sbF.Append(proc);
+                            sbF.Append("),");
+                            continue;
+                    }
+                    sbF.Append(kvp.Value);
+                    sbF.Append(",");
+                }
+
+                // Last
+                var lastKvp = linqedCopy.Last();
+                sbF.Append(lastKvp.Key);
+                switch(lastKvp.Value)
+                {
+                    case FixedConstant _:
+                        sbF.Append("=");
+                        goto case null;;
+                    case DeferredConstant _:
+                        sbF.Append(":=");
+                        goto case null;
+                    case null: // Common
+                        sbF.Append(lastKvp.Value);
+                        sbF.Append(",");
+                        break;
+
+                    case Procedure proc:
+                        sbF.Append("(");
+                        sbF.Append(proc);
+                        sbF.Append(")");
+                        break;
+                }
+
+                sb.Append(sbF);
             }
-            foreach(Qualified qual in Fraks)
-            {
-                sb.Append(qual);
-                sb.Append(' ');
+#endregion
+            sb.Append(' ');
+#region FractranStringify
+            if(Fraks.Count > 0){
+                StringBuilder sbF = new StringBuilder();
+
+                foreach(Qualified qual in Fraks.Take(Fraks.Count - 1))
+                {
+                    sbF.Append(qual);
+                    sbF.Append(" ");
+                }
+
+                sbF.Append(Fraks.Last());
+
+                sb.Append(sbF);
             }
+#endregion
 
             return sb.ToString();
         }
@@ -203,6 +265,15 @@ namespace mxpsql.MFK.NET {
         {
             if(V < 0) throw new IllegalQueryableException("Attempted to use a negative in a Queryable.");
             this._Value = V;
+        }
+
+        public static implicit operator Numeral(BigInteger source)
+        {
+            return new Numeral(source);
+        }
+        public static implicit operator Numeral(int source)
+        {
+            return new Numeral(new BigInteger(source));
         }
 
         private Numeral(BigInteger V, tag _)

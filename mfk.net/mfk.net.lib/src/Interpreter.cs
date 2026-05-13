@@ -44,9 +44,46 @@ namespace mxpsql.MFK.NET {
 
 #region ExecutionEngine
 
+        private void Division(BigInteger Number, Fraction Frak, out BigInteger quotient, out BigInteger remainder)
+        {
+            BigInteger dividend = 0;
+            if(Frak.Numerator is Numeral n) dividend = Number*n.Value;
+            else throw new NotImplementedException();
+
+            if(!(Frak.Denominator is Numeral)) throw new NotImplementedException();
+
+            // Console.WriteLine($"{Number} - {dividend}");
+            
+            quotient = BigInteger.DivRem(dividend, ((Numeral)Frak.Denominator).Value, out remainder);
+        }
+
         public bool MoveNext()
         {
-            throw new NotImplementedException();
+            if(prog.MaxIteration is Numeral n)
+            {
+                if(n != Numeral.Unbounded && n.Value >= Cycle) return false;
+            }
+
+            if(InstructionPointer >= prog.Fraks.Count) return false;
+
+            // TODO: Change
+            // throw new NotImplementedException();
+            Fraction cFrak = (Fraction) prog.Fraks[(int)InstructionPointer];
+            Division(Current, cFrak, out BigInteger q, out BigInteger r);
+
+            if(r == 0)
+            {
+                InstructionPointer = 0;
+                Current = q;
+            }
+            else
+            {
+                InstructionPointer++;
+            }
+
+            Cycle++;
+
+            return true;
         }
 
         private BigInteger ResolveQueryable(Queryable q, bool allowUnbounded = false)
@@ -64,6 +101,7 @@ namespace mxpsql.MFK.NET {
         public void Reset()
         {
             this.Current = ResolveQueryable(prog.InitialN);
+            this.InstructionPointer = 0;
         }
 
         private void SetupRandom()

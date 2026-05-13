@@ -1,0 +1,39 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mfk.net", "mfk.net", "{3F8CF6E9-015E-F02A-FDDB-D50B121CB78A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MFK.NET.CLI", "mfk.net\mfk.net.cli\MFK.NET.CLI.csproj", "{292DB483-1995-1910-2047-1E09EF7B56A9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mfk.net.lib", "mfk.net.lib", "{59DE03F5-C3A6-AD12-2057-9821F9E11F34}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MFK.NET", "mfk.net\mfk.net.lib\MFK.NET.csproj", "{CAEE9B0D-54A2-0A1D-4B25-ADF5FE3BC8C8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{292DB483-1995-1910-2047-1E09EF7B56A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{292DB483-1995-1910-2047-1E09EF7B56A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{292DB483-1995-1910-2047-1E09EF7B56A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{292DB483-1995-1910-2047-1E09EF7B56A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CAEE9B0D-54A2-0A1D-4B25-ADF5FE3BC8C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CAEE9B0D-54A2-0A1D-4B25-ADF5FE3BC8C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CAEE9B0D-54A2-0A1D-4B25-ADF5FE3BC8C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CAEE9B0D-54A2-0A1D-4B25-ADF5FE3BC8C8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{292DB483-1995-1910-2047-1E09EF7B56A9} = {3F8CF6E9-015E-F02A-FDDB-D50B121CB78A}
+		{59DE03F5-C3A6-AD12-2057-9821F9E11F34} = {3F8CF6E9-015E-F02A-FDDB-D50B121CB78A}
+		{CAEE9B0D-54A2-0A1D-4B25-ADF5FE3BC8C8} = {59DE03F5-C3A6-AD12-2057-9821F9E11F34}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {ED248804-B3E2-48DD-9387-1159041185D2}
+	EndGlobalSection
+EndGlobal
